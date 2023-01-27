@@ -30,12 +30,12 @@ func main() {
 	go writer(ctx, chan_work)
 
 	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(sigs, os.Interrupt, syscall.SIGTERM)
 	<-sigs
 
 	cancel()
 
-	time.Sleep(5 * time.Second)
+	time.Sleep(3 * time.Second)
 	fmt.Println("Exit")
 	close(chan_work)
 }
