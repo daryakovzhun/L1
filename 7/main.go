@@ -5,6 +5,8 @@ import (
 	"sync"
 )
 
+//Реализовать конкурентную запись данных в map.
+
 type Counters struct {
 	mx sync.Mutex
 	m  map[int]int

@@ -5,26 +5,30 @@ import (
 	"math/rand"
 )
 
+//Разработать конвейер чисел. Даны два канала: в первый пишутся числа (x) из
+//массива, во второй — результат операции x*2, после чего данные из второго
+//канала должны выводиться в stdout.
+
 func main() {
-	ch1 := make(chan float64)
-	ch2 := make(chan float64)
+	ch1 := make(chan float64) //  создаем первый канал
+	ch2 := make(chan float64) //  создаем второй канал
 
-	go func() {
-		for {
-			num := rand.Float64()
-			fmt.Println("Random num = ", num)
-			ch1 <- num
+	go func() { //  запускаем горутину, вызвыв анонимную функцию
+		for { //  запускаем бесконечный цикл
+			num := rand.Float64() * 100       //  получаем рандомное вещественное число
+			fmt.Println("Random num = ", num) //  выводим на экран это число
+			ch1 <- num                        //  записывем число в первый канал
 		}
 	}()
 
-	go func() {
-		for val := range ch1 {
-			fmt.Print("Get num from ch1 = ", val, ", ", val, "^2 = ", val*val, "\n")
-			ch2 <- val * val
+	go func() { //  запускаем горутину, вызвыв анонимную функцию
+		for val := range ch1 { //  читаем данные из первого канала
+			fmt.Print("Get num from ch1 = ", val, ", ", val, "^2 = ", val*val, "\n") //  выводим на экран прочитанное значение и квадрат этого значения
+			ch2 <- val * val                                                         //  записываем квадрат, прочитанного из первого канала, значения во второй канал
 		}
 	}()
 
-	for val := range ch2 {
-		fmt.Println("Get num from ch2 = ", val)
+	for val := range ch2 { //  читаем данные из второго канала
+		fmt.Println("Get num from ch2 = ", val) //  выводим на кран прочитанные данные
 	}
 }
