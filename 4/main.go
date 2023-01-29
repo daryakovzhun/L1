@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"os"
 	"os/signal"
 	"syscall"
@@ -17,56 +18,48 @@ import (
 //способ завершения работы всех воркеров.
 
 func main() {
-	var worker_count int
-	for {
-		fmt.Println("Please, enter workers count:")
-		_, err := fmt.Scan(&worker_count)
-		if err != nil {
-			fmt.Println("Try again")
-			continue
-		}
-		break
+	var workerCount int                         // переменная для количества воркеров
+	fmt.Println("Please, enter workers count:") // просим ввести количество воркеров
+	fmt.Scan(&workerCount)                      // считывает количество воркеров
+
+	ctx, cancel := context.WithCancel(context.Background()) // создаем контекст с функцией отмены
+
+	chanWork := make(chan int) // создаем канал
+
+	for i := 0; i < workerCount; i++ { // запускаем цикл по количеству воркеров
+		go writer(ctx, chanWork)  // запускаем горутину для записи в канал
+		go printer(ctx, chanWork) // запускаем горутину для чтения из канала
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	sigExit := make(chan os.Signal, 1)                    // создаем канал для сигнала от пользователя
+	signal.Notify(sigExit, os.Interrupt, syscall.SIGTERM) // просим переслать в канал сигнал os.Interrupt
+	<-sigExit                                             // ждем сигнала
 
-	chan_work := make(chan int)
-	for i := 0; i < worker_count; i++ {
-		go printer(ctx, chan_work)
-	}
-	go writer(ctx, chan_work)
+	cancel() // вызываем ыункцию отмены контекста
 
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, os.Interrupt, syscall.SIGTERM)
-	<-sigs
-
-	cancel()
-
-	time.Sleep(3 * time.Second)
-	fmt.Println("Exit")
-	close(chan_work)
+	time.Sleep(time.Second) // засыпаем на секунду
+	fmt.Println("Exit")     // выводим на экран о завершении программы
 }
 
-func printer(ctx context.Context, chan_work <-chan int) {
+func printer(ctx context.Context, chanWork <-chan int) {
 	for {
 		select {
 		case <-ctx.Done():
 			break
-		case val := <-chan_work:
+		case val := <-chanWork:
 			fmt.Println(val)
 		}
 	}
 }
 
-func writer(ctx context.Context, chan_work chan<- int) {
-	var i int
+func writer(ctx context.Context, chanWork chan<- int) {
 	for {
+		i := rand.Intn(1000)
 		select {
 		case <-ctx.Done():
 			break
 		default:
-			chan_work <- i
+			chanWork <- i
 		}
-		i++
 	}
 }

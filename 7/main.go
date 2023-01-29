@@ -8,57 +8,57 @@ import (
 //Реализовать конкурентную запись данных в map.
 
 type Counters struct {
-	mx sync.Mutex
-	m  map[int]int
+	mx sync.Mutex  // поле для mutex
+	m  map[int]int // мапа, где будут храниться значения
 }
 
 func NewCounters() *Counters {
-	return &Counters{
-		m: make(map[int]int),
+	return &Counters{ //возвращаем ссылку на новый объект типа Counters
+		m: make(map[int]int), // создаем мапу
 	}
 }
 
 func (c *Counters) Store(key int, value int) {
-	c.mx.Lock()
-	defer c.mx.Unlock()
-	c.m[key] = value
+	c.mx.Lock()         // блокируем для записи
+	defer c.mx.Unlock() // отложенный вызов разблокировки
+	c.m[key] = value    // добавляем пару ключ-значение
 }
 
 func main() {
+	//  создаем массив с данными
 	arr := []int{0, 11, 22, 33, 44, 55, 66, 77, 88, 99}
 
-	fmt.Println("sync.Mutex")
-	// использование sync.Mutex
+	//  1 способ - использование sync.Mutex
 	wg := sync.WaitGroup{}
-	wg.Add(1)
-	counters := NewCounters()
-	go func() {
-		for k, v := range arr {
-			counters.Store(k, v)
+	wg.Add(1)                 //  добавляем 1 горутину
+	counters := NewCounters() //  создаем объект структуры Counters, в которой хранится map
+	go func() {               // запускаем горутину
+		for k, v := range arr { //  итерируемся по массиву значений
+			counters.Store(k, v) // конкуретно записываем в структуру
 		}
-		wg.Done()
+		wg.Done() //  вычитаем из wg
 	}()
-	wg.Wait()
 
-	for k, v := range counters.m {
-		fmt.Println("Key = ", k, " , value = ", v)
+	// 2 способ - использование sync.Map
+	var counters1 sync.Map // создаем переменную типа sync.Map для конкуретной записи
+	wg.Add(1)              //  добавляем 2 горутину
+	go func() {            // запускаем горутину
+		for k, v := range arr { //  итерируемся по массиву значений
+			counters1.Store(k, v) // вызываем метод для конкуретной записи
+		}
+		wg.Done() //  вычитаем из wg
+	}()
+
+	wg.Wait() // дожидаемся завершения работ горутин
+
+	fmt.Println("sync.Mutex")      //  выводим на экран название метода, который использовали
+	for k, v := range counters.m { // итерируемся по map из структуры
+		fmt.Println("Key = ", k, " , value = ", v) // выводим значения, которые были записаны
 	}
 
-	fmt.Println("\nsync.Map")
-	// использование sync.Map
-	var counters1 sync.Map
-	wg1 := sync.WaitGroup{}
-	wg1.Add(1)
-	go func() {
-		for k, v := range arr {
-			counters1.Store(k, v)
-		}
-		wg1.Done()
-	}()
-	wg1.Wait()
-
-	counters1.Range(func(k, v interface{}) bool {
-		fmt.Println("key:", k, ", val:", v)
-		return true // if false, Range stops
+	fmt.Println("\nsync.Map")                     //  выводим на экран название метода, который использовали
+	counters1.Range(func(k, v interface{}) bool { // функция Range, принимающая анонимную функцию, вызываемую для каждого элемента мапы
+		fmt.Println("key:", k, ", val:", v) // выводим значения, которые были записаны
+		return true                         // если функция возвращает false, итерирование прекращается
 	})
 }

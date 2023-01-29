@@ -13,19 +13,19 @@ type Human struct {
 }
 
 func (h *Human) SayFullName() {
-	fmt.Println(h.name + " " + h.surname)
+	fmt.Println(h.name + " " + h.surname) // печатаем полное имя
 }
 
 func (h *Human) SayAge() {
-	fmt.Println(h.age)
+	fmt.Println(h.age) // печатаем возраст
 }
 
 type Action struct {
-	Human
+	Human // наследуемся от Human, также можно (*Human) и (h Human)
 }
 
 func main() {
-	act := Action{Human{"Ivan", "Ivanov", 22}}
-	act.SayFullName()
-	act.SayAge()
+	act := Action{Human{"Ivan", "Ivanov", 22}} // создаем структуру Action, поле которого является структура Human
+	act.SayFullName()                          // вызов метода, который печатаем полное имя
+	act.SayAge()                               // вызов метода, который печатаем возраст
 }

@@ -8,21 +8,17 @@ import (
 //Написать программу, которая конкурентно рассчитает значение квадратов чисел
 //взятых из массива (2,4,6,8,10) и выведет их квадраты в stdout.
 
-func square(val int) {
-	fmt.Printf("%d^2 = %d\n", val, val*val)
-}
-
 func main() {
-	arr := []int{2, 4, 6, 8, 10}
+	arr := []int{2, 4, 6, 8, 10} // создаем массив с последовательностью чисел
 	wg := sync.WaitGroup{}
 
-	for _, val := range arr {
-		wg.Add(1)
-		go func(val int) {
-			square(val)
-			wg.Done()
+	for _, val := range arr { // итерируемся по массиву
+		wg.Add(1)          // добавляем горутину
+		go func(val int) { // вызываем горутину
+			fmt.Printf("%d^2 = %d\n", val, val*val) // выводим квадрат значения
+			wg.Done()                               // вычитаем из wg
 		}(val)
 	}
 
-	wg.Wait()
+	wg.Wait() // дожидаемся завершения работы всех горутин
 }

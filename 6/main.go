@@ -15,30 +15,38 @@ import (
 //3 - завязать все горутины на переданный в них context.
 
 func main() {
-	// 1 - использование каналов
-	message := make(chan string)
+	// 1 способ - использование каналов
+	fmt.Println("Use chan")
+	message := make(chan int) //создаем канал
 
-	go func() {
-		time.Sleep(time.Second)
-		message <- "Hello 1"
+	go func() { // запускаем горутину
+		for i := 0; i < 5; i++ { // создаем цикл
+			message <- i                       // записываем данные в канал
+			time.Sleep(500 * time.Millisecond) // засыпаем на пол секунды
+		}
+		close(message) // закрываем канал, когда все данные уже отправлены
 	}()
-	fmt.Println(<-message)
 
-	// 2 - использование context
+	for v := range message { // итерируемся по значениям в канале
+		fmt.Println(v) // выводи на экран
+	}
+
+	// 2 способ - использование context
+	fmt.Println("\nUse context")
 	wg := sync.WaitGroup{}
-	wg.Add(1)
-	ctx, _ := context.WithTimeout(context.Background(), 3*time.Second)
-	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				wg.Done()
+	wg.Add(1)                                                          // добавляем 1 горутину
+	ctx, _ := context.WithTimeout(context.Background(), 3*time.Second) // создаем контекст, завязанный на времени 3 секунды
+	go func() {                                                        // запускаем горутину
+		for { // бесконечный цикл
+			select { // оператор, который блокируется до тех пор, пока один из его блоков case не будет готов к запуску, а затем выполняет этот блок
+			case <-ctx.Done(): // проверяем истекло ли время у контекста
+				wg.Done() // вычитаем из wg
 				return
 			default:
-				fmt.Println("Work 2")
-				time.Sleep(500 * time.Millisecond)
+				fmt.Println("Work 2")              // выполняем работу
+				time.Sleep(500 * time.Millisecond) // засыпаем на пол секунды
 			}
 		}
 	}()
-	wg.Wait()
+	wg.Wait() // дожидаемся завершения горутины
 }

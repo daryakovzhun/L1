@@ -9,67 +9,67 @@ import (
 //Дана последовательность чисел: 2,4,6,8,10. Найти сумму их
 //квадратов(22+32+42….) с использованием конкурентных вычислений.
 
-func option1() {
-	arr := []int{2, 4, 6, 8, 10}
-	chan_out := make(chan int, len(arr))
+func sumWithChan() {
+	arr := []int{2, 4, 6, 8, 10}        // создаем массив с последовательностью чисел
+	chanOut := make(chan int, len(arr)) // создаем канал
 	wg := sync.WaitGroup{}
 
-	for _, val := range arr {
-		wg.Add(1)
-		go func(val int) {
-			chan_out <- val * val
-			wg.Done()
+	for _, val := range arr { // итерируемся по массиву
+		wg.Add(1)          // добавляем горутину
+		go func(val int) { // вызываем горутину
+			chanOut <- val * val // записываем в канал квадрат значения
+			wg.Done()            // вычитаем из wg
 		}(val)
 	}
 
-	wg.Wait()
-	close(chan_out)
+	wg.Wait()      // дожидаемся завершения работы всех горутин
+	close(chanOut) // закрываем канал
 
-	var sum int
-	for v := range chan_out {
-		sum += v
+	var sum int              // создаем переменную для суммы
+	for v := range chanOut { // итерируемся по значениям в канале
+		sum += v // добавляем к сумме
 	}
 
-	fmt.Println("Sum1 = ", sum)
+	fmt.Println("Sum1 = ", sum) // выводим на экран сумму
 }
 
-func option2() {
-	arr := []int{2, 4, 6, 8, 10}
+func sumWithAtomic() {
+	arr := []int{2, 4, 6, 8, 10} // создаем массив с последовательностью чисел
 	wg := sync.WaitGroup{}
 
-	var sum int32
-	for _, val := range arr {
-		wg.Add(1)
-		go func(val int) {
-			atomic.AddInt32(&sum, int32(val*val))
-			wg.Done()
+	var sum int32             // создаем переменную для суммы
+	for _, val := range arr { // итерируемся по массиву
+		wg.Add(1)          // добавляем горутину
+		go func(val int) { // вызываем горутину
+			atomic.AddInt32(&sum, int32(val*val)) // говорим atomic добавить к переменной sum val*val
+			wg.Done()                             // вычитаем из wg
 		}(val)
 	}
-	wg.Wait()
-	fmt.Println("Sum2 = ", sum)
+	wg.Wait()                   // дожидаемся завершения работы всех горутин
+	fmt.Println("Sum2 = ", sum) // выводим на экран сумму
 }
 
-func option3() {
-	arr := []int{2, 4, 6, 8, 10}
+func sumWithMutex() {
+	arr := []int{2, 4, 6, 8, 10} // создаем массив с последовательностью чисел
 	wg := sync.WaitGroup{}
 	mu := sync.Mutex{}
 
-	var sum int
-	for _, val := range arr {
-		wg.Add(1)
-		go func(val int) {
-			mu.Lock()
-			sum += val * val
-			mu.Unlock()
-			wg.Done()
+	var sum int               // создаем переменную для суммы
+	for _, val := range arr { // итерируемся по массиву
+		wg.Add(1)          // добавляем горутину
+		go func(val int) { // вызываем горутину
+			mu.Lock()        // блокируем
+			sum += val * val // добавляем к sum val*val
+			mu.Unlock()      // разблокируем
+			wg.Done()        // вычитаем из wg
 		}(val)
 	}
-	wg.Wait()
-	fmt.Println("Sum3 = ", sum)
+	wg.Wait()                   // дожидаемся завершения работы всех горутин
+	fmt.Println("Sum3 = ", sum) // выводим на экран сумму
 }
 
 func main() {
-	option1()
-	option2()
-	option3()
+	sumWithChan()   // вызываем нахождение суммы с использованием каналов
+	sumWithAtomic() // вызываем нахождение суммы с использованием atomic
+	sumWithMutex()  // вызываем нахождение суммы с использованием mutex
 }
