@@ -1,48 +1,30 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"sort"
+)
 
 //  Реализовать быструю сортировку массива (quicksort) встроенными методами
 //  языка.
 
-func QuickSort(ar []int) {
-	if len(ar) <= 1 { //  массив из 1-ого элемента не нуждается в сортировке
-		return
-	}
-
-	split := part(ar) //  результат вызова функции part вернет индекс на котором остановились, там самым все элементы слева
-	// от центрального (разрешвющего) элемента меньше его, а справа больше
-
-	QuickSort(ar[:split]) //  рукурсивная сортировка левой части массива
-	QuickSort(ar[split:]) //  рукурсивная сортировка правой части массива
-}
-
-func part(ar []int) int {
-	center := ar[len(ar)/2] //  находим центральный (разрешающий) элемент
-
-	left, right := 0, len(ar)-1 //  задаем левую и правую границы
-
-	for { //  запускаем бесконечный цикл
-		for ar[left] < center { //  пока левый элемент меньше центрального
-			left++ //  смещаем левую границу
-		}
-
-		for ar[right] > center { //  пока правый элемент больше центрального
-			right-- //  смещаем правую границу
-		}
-
-		if left >= right { //  если достигли случая когда левая граница оказалась больше или равной правой, то возвращаем правую границу
-			return right
-		}
-
-		ar[left], ar[right] = ar[right], ar[left] //  иначе переставляем значения и повторяем цикл
-	}
+type Human struct {
+	name    string
+	surname string
+	age     int
 }
 
 func main() {
 	//  задаем неотсортированный массив
 	arr := []int{376, 609, 22, 54, 1, 0, 321, 999, 2321, 545}
 	fmt.Println(arr) //  напечатаем до сортировки
-	QuickSort(arr)   //  вызываем функцию быстрой сортировки
+	sort.Ints(arr)
 	fmt.Println(arr) //  напетаем после сортировки
+
+	humanArr := []Human{{"Petr", "Petrov", 50}, {"Ivan", "Ivanov", 23}, {"Kate", "Orlova", 45}}
+	fmt.Println(humanArr)
+	sort.Slice(humanArr, func(i, j int) bool {
+		return humanArr[i].surname < humanArr[j].surname
+	})
+	fmt.Println(humanArr)
 }
