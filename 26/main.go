@@ -16,11 +16,11 @@ import (
 //aabcd — false
 
 func isUniqueLetter(s string) bool {
-	set := make(map[rune]bool)           //  создаем словарь куда будем записывать уникальные встречающиеся символы в строке
+	set := make(map[rune]struct{})       //  создаем словарь куда будем записывать уникальные встречающиеся символы в строке
 	rune_s := []rune(strings.ToLower(s)) //  переводим в нижний регистр и преобразуем в руну
 	for _, v := range rune_s {           //  итерируемся по руне
 		if _, ex := set[v]; !ex { //  проверяем нахождение символа в словаре
-			set[v] = false //  добавляем в словарь
+			set[v] = struct{}{} //  добавляем в словарь
 		} else {
 			return false // возвращаем false, так как символ не уникальный
 		}
